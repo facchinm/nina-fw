@@ -74,7 +74,7 @@ int WiFiSSLClient::connect(const char* host, uint16_t port)
 
     mbedtls_ssl_conf_authmode(&_sslConfig, MBEDTLS_SSL_VERIFY_REQUIRED);
 
-    if (mbedtls_x509_crt_parse(&_caCrt, (const unsigned char *)ROOT_CAs, strlen(ROOT_CAs) + 1) != 0) {
+    if (mbedtls_x509_crt_parse_path(&_caCrt, "/") != 0) {
       stop();
       return 0;
     }
@@ -267,6 +267,7 @@ uint16_t WiFiSSLClient::remotePort()
   return ntohs(((struct sockaddr_in *)&addr)->sin_port);
 }
 
+#if 0
 const char* WiFiSSLClient::ROOT_CAs =
 "-----BEGIN CERTIFICATE-----\n"
 "MIIENjCCAx6gAwIBAgIBATANBgkqhkiG9w0BAQUFADBvMQswCQYDVQQGEwJTRTEU\n"
@@ -554,3 +555,4 @@ const char* WiFiSSLClient::ROOT_CAs =
 "4fQRbxC1lfznQgUy286dUV4otp6F01vvpX1FQHKOtw5rDgb7MzVIcbidJ4vEZV8N\n"
 "hnacRHr2lVz2XTIIM6RUthg/aFzyQkqFOFSDX9HoLPKsEdao7WNq\n"
 "-----END CERTIFICATE-----\n";
+#endif

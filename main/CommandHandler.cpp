@@ -976,6 +976,57 @@ int setAnalogWrite(const uint8_t command[], uint8_t response[])
   return 6;
 }
 
+int writeFile(const uint8_t command[], uint8_t response[]) {
+  char filename[32 + 1];
+
+  memset(filename, 0x00, sizeof(filename));
+  memcpy(filename, &command[6], command[5]);
+  int len = command[3];
+  int offset = command[4];
+
+  FILE* f = fopen(filename, "a");
+  fseek(f, offset, SEEK_SET);
+  int ret = fwrite(&command[6 + command[5]], sizeof(uint8_t), len, f);
+  fclose(f);
+
+  return ret;
+}
+
+int readFile(const uint8_t command[], uint8_t response[]) {
+  char filename[32 + 1];
+
+  memset(filename, 0x00, sizeof(filename));
+  memcpy(filename, &command[6], command[5]);
+  int len = command[3];
+  int offset = command[4];
+
+  FILE* f = fopen(filename, "r");
+  fseek(f, offset, SEEK_SET);
+  int ret = fread(&response[0], sizeof(uint8_t), len, f);
+  fclose(f);
+
+  return ret;
+}
+
+int downloadOTA(const uint8_t command[], uint8_t response[]) {
+	return 0;
+}
+
+int deleteFile(const uint8_t command[], uint8_t response[]) {
+  char filename[32 + 1];
+
+  memset(filename, 0x00, sizeof(filename));
+  memcpy(filename, &command[6], command[5]);
+
+  int ret = -1;
+
+  struct stat st;
+  if (stat(filename, &st) == 0) {
+    // Delete it if it exists
+    ret = unlink(filename);
+  }
+  return ret;
+}
 
 typedef int (*CommandHandlerType)(const uint8_t command[], uint8_t response[]);
 
@@ -996,7 +1047,7 @@ const CommandHandlerType commandHandlers[] = {
   NULL, NULL, NULL, NULL, sendDataTcp, getDataBufTcp, insertDataBuf, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 
   // 0x50 -> 0x5f
-  setPinMode, setDigitalWrite, setAnalogWrite,
+  setPinMode, setDigitalWrite, setAnalogWrite, writeFile, readFile, deleteFile, downloadOTA,
 };
 
 #define NUM_COMMAND_HANDLERS (sizeof(commandHandlers) / sizeof(commandHandlers[0]))

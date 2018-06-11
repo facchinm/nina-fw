@@ -56,8 +56,6 @@ public:
   virtual uint16_t remotePort();
 
 private:
-  static const char* ROOT_CAs;
-
   mbedtls_entropy_context _entropyContext;
   mbedtls_ctr_drbg_context _ctrDrbgContext;
   mbedtls_ssl_context _sslContext;

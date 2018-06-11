@@ -24,6 +24,7 @@
 #include <WiFiUdp.h>
 
 #include "CommandHandler.h"
+#include "esp_http_client.h"
 
 const char FIRMWARE_VERSION[6] = "1.0.0";
 
@@ -1008,8 +1009,43 @@ int readFile(const uint8_t command[], uint8_t response[]) {
   return ret;
 }
 
-int downloadOTA(const uint8_t command[], uint8_t response[]) {
-	return 0;
+#define MAX_HTTP_RECV_BUFFER 	1024
+
+
+int downloadFile(const uint8_t command[], uint8_t response[]) {
+  char url[128 + 1];
+  char filename[32 + 1];
+
+  memset(url, 0x00, sizeof(url));
+  memcpy(url, &command[5], command[3]);
+  memset(filename, 0x00, sizeof(filename));
+  memcpy(filename, &command[6 + command[3]], command[4]);
+
+  char *buffer = (char*)malloc(MAX_HTTP_RECV_BUFFER);
+  if (buffer == NULL) {
+    return -1;
+  }
+  esp_http_client_config_t config = {
+    .url = url,
+  };
+  esp_http_client_handle_t client = esp_http_client_init(&config);
+  esp_err_t err;
+  if ((err = esp_http_client_open(client, 0)) != ESP_OK) {
+    free(buffer);
+    return -1;
+  }
+  int content_length =  esp_http_client_fetch_headers(client);
+  int total_read_len = 0, read_len;
+  if (total_read_len < content_length && content_length <= MAX_HTTP_RECV_BUFFER) {
+    read_len = esp_http_client_read(client, buffer, content_length);
+    if (read_len <= 0) {
+    }
+    buffer[read_len] = 0;
+  }
+  esp_http_client_close(client);
+  esp_http_client_cleanup(client);
+  free(buffer);
+  return 0;
 }
 
 int deleteFile(const uint8_t command[], uint8_t response[]) {
@@ -1047,7 +1083,7 @@ const CommandHandlerType commandHandlers[] = {
   NULL, NULL, NULL, NULL, sendDataTcp, getDataBufTcp, insertDataBuf, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 
   // 0x50 -> 0x5f
-  setPinMode, setDigitalWrite, setAnalogWrite, writeFile, readFile, deleteFile, downloadOTA,
+  setPinMode, setDigitalWrite, setAnalogWrite, writeFile, readFile, deleteFile, downloadFile,
 };
 
 #define NUM_COMMAND_HANDLERS (sizeof(commandHandlers) / sizeof(commandHandlers[0]))

@@ -305,6 +305,7 @@ int getCurrBSSID(const uint8_t command[], uint8_t response[])
 
   response[2] = 1; // number of parameters
   response[3] = 6; // parameter 1 length
+  response[3] = 6; // parameter 1 length
 
   memcpy(&response[4], bssid, sizeof(bssid));
 
@@ -592,6 +593,7 @@ int startClientTcp(const uint8_t command[], uint8_t response[])
 
     if (host[0] != '\0') {
       result = tlsClients[socket].connect(host, port);
+      printf("tlsClients: %d\n", result);
     } else {
       result = tlsClients[socket].connect(ip, port);
     }

@@ -22,6 +22,10 @@
 extern "C" {
   #include <driver/periph_ctrl.h>
   #include "esp_spiffs.h"
+  #include "esp_log.h"
+  #include <stdio.h>
+  #include <sys/types.h>
+  #include <dirent.h>
 }
 
 #include <Arduino.h>
@@ -33,7 +37,7 @@ extern "C" {
 
 #define SPI_BUFFER_LEN SPI_MAX_DMA_LEN
 
-int debug = 0;
+int debug = 1;
 
 uint8_t* commandBuffer;
 uint8_t* responseBuffer;
@@ -78,6 +82,8 @@ void setDebug(int d) {
   }
 }
 
+static const char* TAG = "wifi1010";
+
 void setup() {
   setDebug(debug);
 
@@ -88,12 +94,11 @@ void setup() {
   SPIS.begin();
 
   esp_vfs_spiffs_conf_t conf = {
-    .base_path = "/",
+    .base_path = "/storage",
     .partition_label = NULL,
     .max_files = 50,
     .format_if_mount_failed = true
   };
-
   esp_err_t ret = esp_vfs_spiffs_register(&conf);
 
   if (WiFi.status() == WL_NO_SHIELD) {
@@ -115,7 +120,7 @@ void loop() {
     return;
   }
 
-  if (debug) {
+  if (0) {
     dumpBuffer("COMMAND", commandBuffer, commandLength);
   }
 
@@ -125,7 +130,7 @@ void loop() {
 
   SPIS.transfer(responseBuffer, NULL, responseLength);
 
-  if (debug) {
+  if (0) {
     dumpBuffer("RESPONSE", responseBuffer, responseLength);
   }
 }

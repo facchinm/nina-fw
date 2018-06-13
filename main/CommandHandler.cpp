@@ -593,7 +593,6 @@ int startClientTcp(const uint8_t command[], uint8_t response[])
 
     if (host[0] != '\0') {
       result = tlsClients[socket].connect(host, port);
-      printf("tlsClients: %d\n", result);
     } else {
       result = tlsClients[socket].connect(ip, port);
     }

@@ -77,7 +77,6 @@ int WiFiSSLClient::connect(const char* host, uint16_t port)
 	int ret = mbedtls_x509_crt_parse_path(&_caCrt, "/storage/certs");
 
     if (ret < 0) {
-	  printf("mbedtls_x509_crt_parse_path failed, %d\n", ret);
       stop();
       return 0;
     }
@@ -88,7 +87,6 @@ int WiFiSSLClient::connect(const char* host, uint16_t port)
 
 	ret = mbedtls_ssl_setup(&_sslContext, &_sslConfig);
     if (ret != 0) {
-	  printf("mbedtls_ssl_setup failed, %d\n", ret);
       stop();
       return 0;
     }
@@ -98,7 +96,6 @@ int WiFiSSLClient::connect(const char* host, uint16_t port)
 
 	ret = mbedtls_net_connect(&_netContext, host, portStr, MBEDTLS_NET_PROTO_TCP);
     if (ret != 0) {
-	  printf("mbedtls_net_connect failed, %d\n", ret);
       stop();
       return 0;
     }
@@ -108,14 +105,10 @@ int WiFiSSLClient::connect(const char* host, uint16_t port)
     int result = MBEDTLS_ERR_SSL_WANT_READ;
 
     do {
-	  printf("in mbedtls_ssl_handshake failed, %d\n", result);
       result = mbedtls_ssl_handshake(&_sslContext);
     } while (result == MBEDTLS_ERR_SSL_WANT_READ || result == MBEDTLS_ERR_SSL_WANT_WRITE);
 
-	printf("after mbedtls_ssl_handshake failed, %d\n", result);
-
     if (result != 0) {
-	  printf("mbedtls_ssl_handshake failed, %d\n", result);
       stop();
       return 0;
     }

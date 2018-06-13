@@ -30,9 +30,6 @@ static esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 
 int downloadAndSaveFile(char* url, char* filename, FILE* f) {
 
-  printf("url: %s\n", url);
-  printf("filename: %s\n", filename);
-
   char *buffer = (char*)malloc(MAX_HTTP_RECV_BUFFER);
   if (buffer == NULL) {
     return -1;
@@ -70,19 +67,16 @@ void catTestFile(char* filepath) {
   FILE* file = fopen(filepath, "r");
   char c;
   if (file) {
-	struct stat st;
+    struct stat st;
     stat(filepath, &st);
-    
     int len = st.st_size;
-	printf("File length: %d\n", len);
-
-	int read = 0;
+    int read = 0;
 
     while (read < len) {
-		c = getc(file);
+      c = getc(file);
         putchar(c);
         read++;
-	}
+    }
     fclose(file);
   }
 }
@@ -93,7 +87,7 @@ void listDir(char* dirname) {
   if ((dir = opendir (dirname)) != NULL) {
     /* print all the files and directories within directory */
     while ((ent = readdir (dir)) != NULL) {
-	  printf ("%s\n", ent->d_name);
+      printf ("%s\n", ent->d_name);
     }
     closedir (dir);
   } else {

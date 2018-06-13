@@ -84,6 +84,12 @@ void setDebug(int d) {
 
 static const char* TAG = "wifi1010";
 
+extern "C" {
+	void catTestFile(char* filepath);
+	void listDir(char* dirname);
+}
+
+
 void setup() {
   setDebug(debug);
 
@@ -96,15 +102,18 @@ void setup() {
   esp_vfs_spiffs_conf_t conf = {
     .base_path = "/storage",
     .partition_label = NULL,
-    .max_files = 50,
+    .max_files = 20,
     .format_if_mount_failed = true
   };
   esp_err_t ret = esp_vfs_spiffs_register(&conf);
 
+  //catTestFile("/storage/mycert.crt");
+  //listDir("/storage");
+
   if (WiFi.status() == WL_NO_SHIELD) {
     while (1); // no shield
   }
-  
+
   commandBuffer = (uint8_t*)heap_caps_malloc(SPI_BUFFER_LEN, MALLOC_CAP_DMA);
   responseBuffer = (uint8_t*)heap_caps_malloc(SPI_BUFFER_LEN, MALLOC_CAP_DMA);
 

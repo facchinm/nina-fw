@@ -184,6 +184,13 @@ uint8_t WiFiClass::begin(const char* ssid, const char* key)
     _status = WL_CONNECT_FAILED;
   }
 
+  if (_ipInfo.ip.addr) {
+    tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_STA);
+    tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_AP, &_ipInfo);
+  } else {
+    tcpip_adapter_dhcpc_start(TCPIP_ADAPTER_IF_STA);
+  }
+
   esp_wifi_connect();
 
   return _status;
@@ -208,10 +215,10 @@ uint8_t WiFiClass::beginAP(const char *ssid, uint8_t channel)
 
   if (esp_wifi_set_config(ESP_IF_WIFI_AP, &wifiConfig) != ESP_OK) {
     _status = WL_AP_FAILED;
+  } else {
+    esp_wifi_start();
+    xEventGroupWaitBits(_eventGroup, BIT1, false, true, portMAX_DELAY);
   }
-
-  esp_wifi_start();
-  xEventGroupWaitBits(_eventGroup, BIT1, false, true, portMAX_DELAY);
 
   return _status;
 }
@@ -236,10 +243,10 @@ uint8_t WiFiClass::beginAP(const char *ssid, uint8_t key_idx, const char* key, u
 
   if (esp_wifi_set_config(ESP_IF_WIFI_AP, &wifiConfig) != ESP_OK) {
     _status = WL_AP_FAILED;
+  } else {
+    esp_wifi_start();
+    xEventGroupWaitBits(_eventGroup, BIT1, false, true, portMAX_DELAY);
   }
-
-  esp_wifi_start();
-  xEventGroupWaitBits(_eventGroup, BIT1, false, true, portMAX_DELAY);
 
   return _status;
 }
@@ -264,10 +271,10 @@ uint8_t WiFiClass::beginAP(const char *ssid, const char* key, uint8_t channel)
 
   if (esp_wifi_set_config(ESP_IF_WIFI_AP, &wifiConfig) != ESP_OK) {
     _status = WL_AP_FAILED;
+  } else {
+    esp_wifi_start();
+    xEventGroupWaitBits(_eventGroup, BIT1, false, true, portMAX_DELAY);
   }
-
-  esp_wifi_start();
-  xEventGroupWaitBits(_eventGroup, BIT1, false, true, portMAX_DELAY);
 
   return _status;
 }
@@ -279,7 +286,15 @@ void WiFiClass::config(/*IPAddress*/uint32_t local_ip, /*IPAddress*/uint32_t gat
   _ipInfo.ip.addr = local_ip;
   _ipInfo.gw.addr = gateway;
   _ipInfo.netmask.addr = subnet;
-  tcpip_adapter_set_ip_info(_interface == ESP_IF_WIFI_AP ? TCPIP_ADAPTER_IF_AP : TCPIP_ADAPTER_IF_STA, &_ipInfo);
+
+  if (_interface == ESP_IF_WIFI_AP) {
+    tcpip_adapter_dhcps_stop(TCPIP_ADAPTER_IF_AP);
+    tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_AP, &_ipInfo);
+    tcpip_adapter_dhcps_start(TCPIP_ADAPTER_IF_AP);
+  } else {
+    tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_STA);
+    tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &_ipInfo);
+  }
 }
 
 void WiFiClass::setDNS(/*IPAddress*/uint32_t dns_server1, /*IPAddress*/uint32_t dns_server2)
@@ -604,6 +619,11 @@ void WiFiClass::handleSystemEvent(system_event_t* event)
 
     case SYSTEM_EVENT_STA_CONNECTED:
       esp_wifi_sta_get_ap_info(&_apRecord);
+
+      if (_ipInfo.ip.addr) {
+        // static IP
+        _status = WL_CONNECTED;
+      }
       break;
 
     case SYSTEM_EVENT_STA_GOT_IP:
@@ -646,7 +666,15 @@ void WiFiClass::handleSystemEvent(system_event_t* event)
       memcpy(_apRecord.ssid, config.ap.ssid, sizeof(config.ap.ssid));
       _apRecord.authmode = config.ap.authmode;
 
-      tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_AP, &_ipInfo);
+      if (_ipInfo.ip.addr) {
+        // custom static IP
+        tcpip_adapter_dhcps_stop(TCPIP_ADAPTER_IF_AP);
+        tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_AP, &_ipInfo);
+        tcpip_adapter_dhcps_start(TCPIP_ADAPTER_IF_AP);
+      } else {
+        tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_AP, &_ipInfo);
+      }
+
       _status = WL_AP_LISTENING;
       xEventGroupSetBits(_eventGroup, BIT1);
       break;

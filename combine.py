@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 booloaderData = open("build/bootloader/bootloader.bin", "rb").read()
-partitionData = open("build/partitions_singleapp.bin", "rb").read()
+partitionData = open("build/partitions.bin", "rb").read()
 appData = open("build/nina-fw.bin", "rb").read()
+storageData = open("build/spiffs_image.img", "rb").read()
 
 # calculate the output binary size, app offset 
-outputSize = 0x10000 + len(appData)
+outputSize = 0x190000 + len(storageData)
 if (outputSize % 1024):
 	outputSize += 1024 - (outputSize % 1024)
 
@@ -21,6 +22,9 @@ for i in range(0, len(partitionData)):
 
 for i in range(0, len(appData)):
 	outputData[0x10000 + i] = appData[i]
+
+for i in range(0, len(storageData)):
+        outputData[0x190000 + i] = storageData[i]
 
 # write out
 with open("NINA_W102.bin","w+b") as f:

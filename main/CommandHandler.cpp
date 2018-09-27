@@ -978,14 +978,14 @@ int setAnalogWrite(const uint8_t command[], uint8_t response[])
 
 int writeFile(const uint8_t command[], uint8_t response[]) {
   char filename[32 + 1];
-  uint8_t len;
+  size_t len;
   size_t offset;
 
   memcpy(&offset, &command[4], command[3]);
   memcpy(&len, &command[5 + command[3]], command[4 + command[3]]);
 
   memset(filename, 0x00, sizeof(filename));
-  memcpy(filename, &command[7 + command[3]], command[6 + command[3]]);
+  memcpy(filename, &command[10 + command[3]], command[9 + command[3]]);
 
   FILE* f = fopen(filename, "ab+");
   if (f == NULL) {
@@ -993,7 +993,7 @@ int writeFile(const uint8_t command[], uint8_t response[]) {
   }
 
   fseek(f, offset, SEEK_SET);
-  int ret = fwrite(&command[8 + command[3] + command[6 + command[3]]], 1, len, f);
+  int ret = fwrite(&command[11 + command[3] + command[9 + command[3]]], 1, len, f);
   fclose(f);
 
   return ret;
@@ -1001,14 +1001,14 @@ int writeFile(const uint8_t command[], uint8_t response[]) {
 
 int readFile(const uint8_t command[], uint8_t response[]) {
   char filename[32 + 1];
-  uint8_t len;
+  size_t len;
   size_t offset;
 
   memcpy(&offset, &command[4], command[3]);
   memcpy(&len, &command[5 + command[3]], command[4 + command[3]]);
 
   memset(filename, 0x00, sizeof(filename));
-  memcpy(filename, &command[7 + command[3]], command[6 + command[3]]);
+  memcpy(filename, &command[10 + command[3]], command[9 + command[3]]);
 
   FILE* f = fopen(filename, "rb");
   if (f == NULL) {
@@ -1026,14 +1026,14 @@ int readFile(const uint8_t command[], uint8_t response[]) {
 
 int deleteFile(const uint8_t command[], uint8_t response[]) {
   char filename[32 + 1];
-  uint8_t len;
+  size_t len;
   size_t offset;
 
   memcpy(&offset, &command[4], command[3]);
   memcpy(&len, &command[5 + command[3]], command[4 + command[3]]);
 
   memset(filename, 0x00, sizeof(filename));
-  memcpy(filename, &command[7 + command[3]], command[6 + command[3]]);
+  memcpy(filename, &command[10 + command[3]], command[9 + command[3]]);
 
   int ret = -1;
   struct stat st;
@@ -1046,14 +1046,14 @@ int deleteFile(const uint8_t command[], uint8_t response[]) {
 
 int existsFile(const uint8_t command[], uint8_t response[]) {
   char filename[32 + 1];
-  uint8_t len;
+  size_t len;
   size_t offset;
 
   memcpy(&offset, &command[4], command[3]);
   memcpy(&len, &command[5 + command[3]], command[4 + command[3]]);
 
   memset(filename, 0x00, sizeof(filename));
-  memcpy(filename, &command[7 + command[3]], command[6 + command[3]]);
+  memcpy(filename, &command[10 + command[3]], command[9 + command[3]]);
 
   int ret = -1;
 

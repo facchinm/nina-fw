@@ -100,7 +100,7 @@ void setup() {
   SPIS.begin();
 
   esp_vfs_spiffs_conf_t conf = {
-    .base_path = "/storage",
+    .base_path = "/fs",
     .partition_label = NULL,
     .max_files = 20,
     .format_if_mount_failed = true

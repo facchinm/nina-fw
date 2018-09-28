@@ -1080,8 +1080,8 @@ int downloadFile(const uint8_t command[], uint8_t response[]) {
   memset(filename, 0x00, sizeof(filename));
 
   memcpy(url, &command[4], command[3]);
-  memcpy(filename, "/storage/", strlen("/storage/"));
-  memcpy(&filename[strlen("/storage/")], &command[5 + command[3]], command[4 + command[3]]);
+  memcpy(filename, "/fs/", strlen("/fs/"));
+  memcpy(&filename[strlen("/fs/")], &command[5 + command[3]], command[4 + command[3]]);
 
   FILE* f = fopen(filename, "w");
   downloadAndSaveFile(url, filename, f);

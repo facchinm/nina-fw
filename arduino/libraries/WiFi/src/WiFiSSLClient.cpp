@@ -74,7 +74,7 @@ int WiFiSSLClient::connect(const char* host, uint16_t port)
 
     mbedtls_ssl_conf_authmode(&_sslConfig, MBEDTLS_SSL_VERIFY_REQUIRED);
 
-    int ret = mbedtls_x509_crt_parse_path(&_caCrt, "/storage/certs");
+    int ret = mbedtls_x509_crt_parse_path(&_caCrt, "/fs/certs");
 
     if (ret < 0) {
       stop();

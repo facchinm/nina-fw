@@ -985,7 +985,7 @@ int writeFile(const uint8_t command[], uint8_t response[]) {
   memcpy(&len, &command[5 + command[3]], command[4 + command[3]]);
 
   memset(filename, 0x00, sizeof(filename));
-  memcpy(filename, &command[10 + command[3]], command[9 + command[3]]);
+  memcpy(filename, &command[6 + command[3] + command[4 + command[3]]], command[5 + command[3] + command[4 + command[3]]]);
 
   FILE* f = fopen(filename, "ab+");
   if (f == NULL) {
@@ -993,7 +993,9 @@ int writeFile(const uint8_t command[], uint8_t response[]) {
   }
 
   fseek(f, offset, SEEK_SET);
-  int ret = fwrite(&command[11 + command[3] + command[9 + command[3]]], 1, len, f);
+  const uint8_t* data = &command[7 + command[3] + command[4 + command[3]] + command[5 + command[3] + command[4 + command[3]]]];
+
+  int ret = fwrite(data, 1, len, f);
   fclose(f);
 
   return ret;
@@ -1008,7 +1010,7 @@ int readFile(const uint8_t command[], uint8_t response[]) {
   memcpy(&len, &command[5 + command[3]], command[4 + command[3]]);
 
   memset(filename, 0x00, sizeof(filename));
-  memcpy(filename, &command[10 + command[3]], command[9 + command[3]]);
+  memcpy(filename, &command[6 + command[3] + command[4 + command[3]]], command[5 + command[3] + command[4 + command[3]]]);
 
   FILE* f = fopen(filename, "rb");
   if (f == NULL) {
@@ -1033,7 +1035,7 @@ int deleteFile(const uint8_t command[], uint8_t response[]) {
   memcpy(&len, &command[5 + command[3]], command[4 + command[3]]);
 
   memset(filename, 0x00, sizeof(filename));
-  memcpy(filename, &command[10 + command[3]], command[9 + command[3]]);
+  memcpy(filename, &command[6 + command[3] + command[4 + command[3]]], command[5 + command[3] + command[4 + command[3]]]);
 
   int ret = -1;
   struct stat st;
@@ -1053,7 +1055,7 @@ int existsFile(const uint8_t command[], uint8_t response[]) {
   memcpy(&len, &command[5 + command[3]], command[4 + command[3]]);
 
   memset(filename, 0x00, sizeof(filename));
-  memcpy(filename, &command[10 + command[3]], command[9 + command[3]]);
+  memcpy(filename, &command[6 + command[3] + command[4 + command[3]]], command[5 + command[3] + command[4 + command[3]]]);
 
   int ret = -1;
 

@@ -19,6 +19,7 @@
 
 #include <lwip/netdb.h>
 #include <lwip/sockets.h>
+#include "esp_partition.h"
 
 #include "WiFiSSLClient.h"
 
@@ -74,7 +75,22 @@ int WiFiSSLClient::connect(const char* host, uint16_t port)
 
     mbedtls_ssl_conf_authmode(&_sslConfig, MBEDTLS_SSL_VERIFY_REQUIRED);
 
-    int ret = mbedtls_x509_crt_parse_path(&_caCrt, "/fs/certs");
+    spi_flash_mmap_handle_t handle;
+    const unsigned char* certs_data;
+
+    const esp_partition_t* part = esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_ANY, "certs");
+    if (part == 0)
+    {
+      return 0;
+    }
+
+    int ret = esp_partition_mmap(part, 0, part->size, SPI_FLASH_MMAP_DATA, (const void**)&certs_data, &handle);
+    if (ret != ESP_OK)
+    {
+      return 0;
+    }
+
+    ret = mbedtls_x509_crt_parse(&_caCrt, certs_data, strlen((char*)certs_data));
 
     if (ret < 0) {
       stop();
@@ -85,7 +101,7 @@ int WiFiSSLClient::connect(const char* host, uint16_t port)
 
     mbedtls_ssl_conf_rng(&_sslConfig, mbedtls_ctr_drbg_random, &_ctrDrbgContext);
 
-	ret = mbedtls_ssl_setup(&_sslContext, &_sslConfig);
+    ret = mbedtls_ssl_setup(&_sslContext, &_sslConfig);
     if (ret != 0) {
       stop();
       return 0;
@@ -94,7 +110,7 @@ int WiFiSSLClient::connect(const char* host, uint16_t port)
     char portStr[6];
     itoa(port, portStr, 10);
 
-	ret = mbedtls_net_connect(&_netContext, host, portStr, MBEDTLS_NET_PROTO_TCP);
+    ret = mbedtls_net_connect(&_netContext, host, portStr, MBEDTLS_NET_PROTO_TCP);
     if (ret != 0) {
       stop();
       return 0;

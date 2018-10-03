@@ -9,7 +9,7 @@ certsData = open("data/roots.pem", "rb").read()
 appData = open("build/nina-fw.bin", "rb").read()
 
 # calculate the output binary size, app offset 
-outputSize = 0x30000 + len(appData)
+outputSize = 0x1B0000 + len(storageData)
 if (outputSize % 1024):
 	outputSize += 1024 - (outputSize % 1024)
 
@@ -34,7 +34,6 @@ outputData[0x10000 + len(certsData)] = 0
 
 for i in range(0, len(appData)):
 	outputData[0x30000 + i] = appData[i]
-
 
 outputFilename = "NINA_W102.bin"
 if (len(sys.argv) > 1):

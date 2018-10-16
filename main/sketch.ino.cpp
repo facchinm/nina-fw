@@ -97,38 +97,17 @@ void setup() {
   }
 }
 
-#ifndef HCI_UART
-#define HCI_UART 1
-#endif
-
 void setupBluetooth() {
-#if HCI_UART == 0
-  periph_module_enable(PERIPH_UART0_MODULE);
-#else
   periph_module_enable(PERIPH_UART1_MODULE);
-#endif
   periph_module_enable(PERIPH_UHCI0_MODULE);
 
-#if HCI_UART == 0
-  uart_set_pin(UART_NUM_0, 1, 3, 18, 5);
-  uart_set_hw_flow_ctrl(UART_NUM_0, UART_HW_FLOWCTRL_DISABLE, 0);
-#else
   uart_set_pin(UART_NUM_1, 23, 12, 18, 5);
-#endif
 
-  esp_bt_controller_config_t btControllerConfig = {
-    .controller_task_stack_size = ESP_TASK_BT_CONTROLLER_STACK,
-    .controller_task_prio = ESP_TASK_BT_CONTROLLER_PRIO,
-#if HCI_UART == 0
-    .hci_uart_no = UART_NUM_0,
-#else
-    .hci_uart_no = UART_NUM_1,
-#endif
-    .hci_uart_baudrate = 115200,
-  };
+  esp_bt_controller_config_t btControllerConfig = BT_CONTROLLER_INIT_CONFIG_DEFAULT(); 
 
   esp_bt_controller_init(&btControllerConfig);
   esp_bt_controller_enable(ESP_BT_MODE_BLE);
+  esp_bt_sleep_enable();
 
   while (1) {
     vTaskDelay(portMAX_DELAY);

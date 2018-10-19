@@ -97,13 +97,28 @@ void setup() {
   }
 }
 
+// #define UNO_WIFI_REV2
+
 void setupBluetooth() {
+#ifdef UNO_WIFI_REV2
+  periph_module_enable(PERIPH_UART0_MODULE);
+  periph_module_enable(PERIPH_UHCI0_MODULE);
+
+  uart_set_pin(UART_NUM_0, 1, 3, 33, 0); // TX, RX, RTS, CTS
+  uart_set_hw_flow_ctrl(UART_NUM_0, UART_HW_FLOWCTRL_CTS_RTS, 0);
+#else
   periph_module_enable(PERIPH_UART1_MODULE);
   periph_module_enable(PERIPH_UHCI0_MODULE);
 
   uart_set_pin(UART_NUM_1, 23, 12, 18, 5);
+#endif
 
   esp_bt_controller_config_t btControllerConfig = BT_CONTROLLER_INIT_CONFIG_DEFAULT(); 
+
+#ifdef UNO_WIFI_REV2
+  btControllerConfig.hci_uart_no = 0;
+  btControllerConfig.hci_uart_baudrate = 9600;
+#endif
 
   esp_bt_controller_init(&btControllerConfig);
   esp_bt_controller_enable(ESP_BT_MODE_BLE);

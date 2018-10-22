@@ -4,7 +4,6 @@
 #include "esp_log.h"
 #include <stdio.h>
 
-#if 0
 #include "esp_http_client.h"
 
 #define MAX_HTTP_RECV_BUFFER 	128
@@ -52,7 +51,7 @@ int downloadAndSaveFile(char* url, char* filename, FILE* f) {
   int total_read_len = 0, read_len;
   while (total_read_len < content_length) {
     read_len = esp_http_client_read(client, buffer, MAX_HTTP_RECV_BUFFER);
-    //fwrite(buffer, sizeof(uint8_t), read_len, f);
+    fwrite(buffer, sizeof(uint8_t), read_len, f);
     if (read_len <= 0) {
 		break;
 	}
@@ -64,40 +63,3 @@ int downloadAndSaveFile(char* url, char* filename, FILE* f) {
 
   return 0;
 }
-
-void catTestFile(char* filepath) {
-  FILE* file = fopen(filepath, "r");
-  char c;
-  if (file) {
-    struct stat st;
-    stat(filepath, &st);
-    int len = st.st_size;
-    int read = 0;
-
-    while (read < len) {
-      c = getc(file);
-        putchar(c);
-        read++;
-    }
-    fclose(file);
-  }
-}
-
-void listDir(char* dirname) {
-  DIR *dir;
-  struct dirent *ent;
-  if ((dir = opendir (dirname)) != NULL) {
-    /* print all the files and directories within directory */
-    while ((ent = readdir (dir)) != NULL) {
-      printf ("%s\n", ent->d_name);
-    }
-    closedir (dir);
-  } else {
-    /* could not open directory */
-  }
-}
-#else
-int downloadAndSaveFile(char* url, char* filename, FILE* f) {
-  return 0;
-}
-#endif

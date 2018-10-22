@@ -1111,7 +1111,10 @@ const CommandHandlerType commandHandlers[] = {
   NULL, NULL, NULL, NULL, sendDataTcp, getDataBufTcp, insertDataBuf, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 
   // 0x50 -> 0x5f
-  setPinMode, setDigitalWrite, setAnalogWrite, writeFile, readFile, deleteFile, existsFile, downloadFile,
+  setPinMode, setDigitalWrite, setAnalogWrite,  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+
+  // 0x60 -> 0x6f
+  writeFile, readFile, deleteFile, existsFile, downloadFile,  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 };
 
 #define NUM_COMMAND_HANDLERS (sizeof(commandHandlers) / sizeof(commandHandlers[0]))

@@ -12,6 +12,11 @@ CFLAGS += -DUNO_WIFI_REV2
 CPPFLAGS += -DUNO_WIFI_REV2
 endif
 
+ifeq ($(MKRVIDOR4000),1)
+CFLAGS += -DMKRVIDOR4000
+CPPFLAGS += -DMKRVIDOR4000
+endif
+
 include $(IDF_PATH)/make/project.mk
 
 firmware: all

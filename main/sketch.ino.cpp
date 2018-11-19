@@ -105,6 +105,8 @@ void setupBluetooth() {
 
 #ifdef UNO_WIFI_REV2
   uart_set_pin(UART_NUM_1, 1, 3, 33, 0); // TX, RX, RTS, CTS
+#elif defined MKRVIDOR4000
+  uart_set_pin(UART_NUM_1, 1, 3, 22, 19);
 #else
   uart_set_pin(UART_NUM_1, 23, 12, 18, 5);
 #endif

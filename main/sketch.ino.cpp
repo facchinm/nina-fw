@@ -103,6 +103,9 @@ void setupBluetooth() {
   periph_module_enable(PERIPH_UART1_MODULE);
   periph_module_enable(PERIPH_UHCI0_MODULE);
 
+  pinMode(25, OUTPUT);
+  digitalWrite(25, LOW);
+
 #ifdef UNO_WIFI_REV2
   uart_set_pin(UART_NUM_1, 1, 3, 33, 0); // TX, RX, RTS, CTS
 #elif defined MKRVIDOR4000
@@ -126,10 +129,18 @@ void setupBluetooth() {
   esp_bt_controller_enable(ESP_BT_MODE_BLE);
   esp_bt_sleep_enable();
 
-  vTaskSuspend(NULL);
+  //vTaskSuspend(NULL);
+
+  //uint8_t buf[9] = {'c','i','a','o', 'c','i','a','o', '\n'};
 
   while (1) {
-    vTaskDelay(portMAX_DELAY);
+    digitalWrite(25, LOW);
+    //uart_write_bytes(UART_NUM_1, (const char*)buf, 9);
+    //uart_write_bytes(UART_NUM_0, (const char*)buf, 9);
+    vTaskDelay( 100 / portTICK_PERIOD_MS);
+    digitalWrite(25, HIGH);
+    vTaskDelay( 100 / portTICK_PERIOD_MS);
+
   }
 }
 

@@ -106,7 +106,7 @@ void setupBluetooth() {
 #ifdef UNO_WIFI_REV2
   uart_set_pin(UART_NUM_1, 1, 3, 33, 0); // TX, RX, RTS, CTS
 #elif defined MKRVIDOR4000
-  uart_set_pin(UART_NUM_1, 1, 3, 22, 19);
+  uart_set_pin(UART_NUM_1, 1, 3, 19, 22);
 #else
   uart_set_pin(UART_NUM_1, 23, 12, 18, 5);
 #endif
@@ -115,7 +115,7 @@ void setupBluetooth() {
   esp_bt_controller_config_t btControllerConfig = BT_CONTROLLER_INIT_CONFIG_DEFAULT(); 
 
   btControllerConfig.hci_uart_no = UART_NUM_1;
-#ifdef UNO_WIFI_REV2
+#if defined(UNO_WIFI_REV2) || defined(MKRVIDOR4000)
   btControllerConfig.hci_uart_baudrate = 115200;
 #else
   btControllerConfig.hci_uart_baudrate = 912600;

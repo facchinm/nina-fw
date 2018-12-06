@@ -73,8 +73,7 @@ uint8_t (& STK500::address_byte)[2] = (uint8_t (&)[2]) STK500::address;
 		stcs(reg::Control_A, 6);
 	
 		/* Perform chip erase if D5 is low */
-		if ((PIND & (1 << PIND5)) == 0)
-			chip_erase();
+		// chip_erase();
 	
 		uint8_t status = lcds(reg::ASI_System_Status);
 		if (status & 0x01) {
@@ -212,8 +211,6 @@ uint8_t (& STK500::address_byte)[2] = (uint8_t (&)[2]) STK500::address;
 				// better clear the page buffer, just in case.
 				UPDI::sts_b(NVM::NVM_base + NVM::CTRLA, NVM::PBC);
 				set_status(STATUS_CMD_OK);
-				// Turn on LED to indicate program mode
-				PORTB |= 1 << 5;
 				return;
 			// in other modes just fail
 			default:
@@ -235,8 +232,6 @@ uint8_t (& STK500::address_byte)[2] = (uint8_t (&)[2]) STK500::address;
 			// already in normal mode
 			case 0x82:
 				set_status(STATUS_CMD_OK);
-				// Turn off LED to indicate normal mode
-				PORTB &= ~(1 << 5);
 				return;
 			// in other modes just fail
 			default:

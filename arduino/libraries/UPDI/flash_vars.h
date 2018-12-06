@@ -1,9 +1,7 @@
 #ifndef FLASH_VARS_H_
 #define FLASH_VARS_H_
 
-#include <avr/pgmspace.h>
-
-#define FLASH(T) const flash<T> PROGMEM
+#define FLASH(T) const flash<T>
 
 template <typename T>
 class flash {
@@ -18,9 +16,9 @@ class flash {
 
 	operator T() const {
 		switch (sizeof(T)) {
-			case 1: return pgm_read_byte(&data);
-			case 2: return pgm_read_word(&data);
-			case 4: return pgm_read_dword(&data);
+			case 1: return data;
+			case 2: return data;
+			case 4: return data;
 		}
 	}
 };

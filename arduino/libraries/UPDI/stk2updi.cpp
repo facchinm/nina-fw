@@ -1,5 +1,4 @@
 // Includes
-//#include <avr/io.h>
 #include "STK500.h"
 #include "updi_io.h"
 #include "stk_io.h"
@@ -7,30 +6,26 @@
 #include "NVM.h"
 
 // Prototypes
-void setup();
-void loop();
-void sys_init();
+void setupProgrammer();
+void loopProgrammer();
 
-int main(void)
+void mainProgrammer(void* param)
 {
-	setup();
-	loop();
+	setupProgrammer();
+	loopProgrammer();
 }
 
-inline void setup() {
-	/* Initialize MCU */
-	sys_init();
-	
+inline void setupProgrammer() {
+
 	/* Initialize serial links */
 	STK_io::init();
 	UPDI_io::init();
 	
 }
 
-
-inline void loop() {
+inline void loopProgrammer() {
 	while (1) {
-		uint8_t current_fuse;
+		uint8_t current_fuse = 0;
 		
 		// Receive command
 		while(!STK500::receive());
@@ -140,21 +135,4 @@ inline void loop() {
 		// send response
 		STK500::answer();
 	}
-}
-
-void sys_init() {
-	/* Disable digital input buffers on port C */
-	DIDR0 = 0x3F;
-	/* Enable all port D pull-ups */
-	PORTD = 0xFF;
-	/* Enable all port B pull-ups, except for LED */
-	PORTB = 0xFF - (1 << PORTB5);
-	/* Disable unused peripherals */
-	ACSR = 1 << ACD;		// turn off comparator
-	PRR =
-		(1 << PRTWI) |		// turn off 2 wire interface
-		(1 << PRTIM2) |		// turn off timer 2
-		(1 << PRTIM1) |		// turn off timer 1
-		(1 << PRSPI) |		// turn off SPI interface
-		(1 << PRADC);		// turn off the ADC		
 }

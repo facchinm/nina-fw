@@ -3,8 +3,6 @@
 
 #include "stk_io.h"
 #include <stdint.h>
-#define F_CPU 16000000
-#include <util/delay.h>
 #include "flash_vars.h"
 #include "NVM.h"
 

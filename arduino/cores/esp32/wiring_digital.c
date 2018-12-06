@@ -29,6 +29,11 @@ void pinMode(uint32_t pin, uint32_t mode)
       gpio_set_pull_mode((gpio_num_t)pin, GPIO_FLOATING);
       break;
 
+    case INPUT_PULLUP:
+      gpio_set_direction((gpio_num_t)pin, GPIO_MODE_INPUT);
+      gpio_set_pull_mode((gpio_num_t)pin, GPIO_PULLUP_ONLY);
+      break;
+
     case OUTPUT:
       gpio_set_direction((gpio_num_t)pin, GPIO_MODE_OUTPUT);
       gpio_set_pull_mode((gpio_num_t)pin, GPIO_FLOATING);

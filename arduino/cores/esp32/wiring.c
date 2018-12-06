@@ -18,8 +18,12 @@
 */
 
 #include <nvs_flash.h>
+#include "esp_attr.h"
+#include "esp_timer.h"
 
 #include "Arduino.h"
+
+#define NOP() asm volatile ("nop")
 
 void init() {
   if (nvs_flash_init() != ESP_OK) {
@@ -27,4 +31,25 @@ void init() {
 
     nvs_flash_init();
   }
+}
+
+unsigned long IRAM_ATTR micros()
+{
+    return (unsigned long) esp_timer_get_time();
+}
+
+void IRAM_ATTR delayMicroseconds(uint32_t us)
+{
+    uint32_t m = micros();
+    if(us){
+        uint32_t e = (m + us);
+        if(m > e){ //overflow
+            while(micros() > e){
+                NOP();
+            }
+        }
+        while(micros() < e){
+            NOP();
+        }
+    }
 }

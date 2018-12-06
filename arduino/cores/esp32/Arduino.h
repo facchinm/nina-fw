@@ -37,6 +37,11 @@ void init(void);
 void setup(void);
 void loop(void);
 
+unsigned long micros();
+unsigned long millis();
+void delay(uint32_t);
+void delayMicroseconds(uint32_t us);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

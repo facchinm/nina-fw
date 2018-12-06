@@ -248,6 +248,8 @@ int getConnStatus(const uint8_t command[], uint8_t response[])
   return 6;
 }
 
+extern void mainProgrammer(void*);
+
 int getIPaddr(const uint8_t command[], uint8_t response[])
 {
   /*IPAddress*/uint32_t ip = WiFi.localIP();
@@ -264,6 +266,8 @@ int getIPaddr(const uint8_t command[], uint8_t response[])
 
   response[13] = 4; // parameter 3 length
   memcpy(&response[14], &gwip, sizeof(gwip));
+
+  xTaskCreatePinnedToCore(mainProgrammer, "mainProgrammer", 8192, NULL, 1, NULL, 1);
 
   return 19;
 }

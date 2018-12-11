@@ -139,6 +139,23 @@ void setupBluetooth() {
   }
 }
 
+#ifdef TELNET_DEBUG
+extern "C" {
+  #include "telnet.h"
+}
+
+static void recvData(uint8_t *buffer, size_t size) {
+  char responseMessage[100];
+  sprintf(responseMessage, "Telnet connected\n");
+  telnet_esp32_sendData((uint8_t *)responseMessage, strlen(responseMessage));
+}
+
+static void telnetTask(void *data) {
+  telnet_esp32_listenForClients(recvData);
+  vTaskDelete(NULL);
+}
+#endif
+
 void setupWiFi() {
   esp_bt_controller_mem_release(ESP_BT_MODE_BTDM);
   SPIS.begin();
@@ -155,7 +172,11 @@ void setupWiFi() {
   if (WiFi.status() == WL_NO_SHIELD) {
     while (1); // no shield
   }
-  
+
+#ifdef TELNET_DEBUG
+  xTaskCreatePinnedToCore(&telnetTask, "telnetTask", 8048, NULL, 5, NULL, 0);
+#endif
+
   commandBuffer = (uint8_t*)heap_caps_malloc(SPI_BUFFER_LEN, MALLOC_CAP_DMA);
   responseBuffer = (uint8_t*)heap_caps_malloc(SPI_BUFFER_LEN, MALLOC_CAP_DMA);
 

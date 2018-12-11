@@ -1048,6 +1048,82 @@ int deleteFile(const uint8_t command[], uint8_t response[]) {
   return 0;
 }
 
+#include <driver/uart.h>
+extern "C" {
+  #include "telnet.h"
+}
+
+int applyOTA(const uint8_t command[], uint8_t response[]) {
+#ifdef UNO_WIFI_REV2
+
+  const char* filename = "/fs/UPDATE.BIN";
+  FILE* updateFile = fopen(filename, "rb");
+
+  // init uart and write update to 4809
+  uart_config_t uart_config;
+
+  uart_config.baud_rate = 115200;
+  uart_config.data_bits = UART_DATA_8_BITS;
+  uart_config.parity = UART_PARITY_DISABLE;
+  uart_config.stop_bits = UART_STOP_BITS_1;
+  uart_config.flow_ctrl = UART_HW_FLOWCTRL_DISABLE;
+  uart_config.rx_flow_ctrl_thresh = 122;
+  uart_config.use_ref_tick = true;
+
+  uart_param_config(UART_NUM_1, &uart_config);
+
+  uart_set_pin(UART_NUM_1,
+                 1, // tx
+                 3, // rx
+                 UART_PIN_NO_CHANGE, // rts
+                 UART_PIN_NO_CHANGE); //cts
+
+  uart_driver_install(UART_NUM_1, 1024, 0, 20, NULL, 0);
+
+  struct stat st;
+  stat(filename, &st);
+
+  int retries = 0;
+
+  for (int i=0; i<st.st_size; i++) {
+    uint8_t c;
+    uint8_t d;
+
+    fread(&c, 1, 1, updateFile);
+    retries = 0;
+    while (retries == 0 || (c != d && retries < 100)) {
+      uart_write_bytes(UART_NUM_1, (const char*)&c, 1);
+      uart_read_bytes(UART_NUM_1, &d, 1, 10);
+      retries++;
+    }
+    if (retries >= 100) {
+      goto exit;
+    }
+  }
+
+  retries = 0;
+  // TEMP: finish writing all the possible bytes with 0xFF, untile timout is reached
+  while (1) {
+    const uint8_t c = 0xFF;
+    uint8_t d = 0;
+    while (c != d && retries < 100) {
+      uart_write_bytes(UART_NUM_1, (const char*)&c, 1);
+      uart_read_bytes(UART_NUM_1, &d, 1, 10);
+      retries++;
+    }
+    if (retries >= 100) {
+      goto exit;
+    }
+  }
+
+exit:
+  fclose(updateFile);
+  unlink(filename);
+
+  return 0;
+#endif
+}
+
 int existsFile(const uint8_t command[], uint8_t response[]) {
   char filename[32 + 1];
   size_t len;
@@ -1114,7 +1190,7 @@ const CommandHandlerType commandHandlers[] = {
   setPinMode, setDigitalWrite, setAnalogWrite,  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 
   // 0x60 -> 0x6f
-  writeFile, readFile, deleteFile, existsFile, downloadFile,  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+  writeFile, readFile, deleteFile, existsFile, downloadFile,  applyOTA, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 };
 
 #define NUM_COMMAND_HANDLERS (sizeof(commandHandlers) / sizeof(commandHandlers[0]))

@@ -22,7 +22,7 @@ static esp_err_t _http_event_handler(esp_http_client_event_t *evt)
             break;
         case HTTP_EVENT_ON_DATA:
             if (!esp_http_client_is_chunked_response(evt->client)) {
-                fwrite((char*)evt->data, sizeof(uint8_t), evt->data_len, (FILE*)evt->user_data);
+                //fwrite((char*)evt->data, sizeof(uint8_t), evt->data_len, (FILE*)evt->user_data);
             }
             break;
     }
@@ -53,9 +53,9 @@ int downloadAndSaveFile(char* url, char* filename, FILE* f) {
     read_len = esp_http_client_read(client, buffer, MAX_HTTP_RECV_BUFFER);
     fwrite(buffer, sizeof(uint8_t), read_len, f);
     if (read_len <= 0) {
-		break;
-	}
-	total_read_len += read_len;
+      break;
+    }
+    total_read_len += read_len;
   }
   esp_http_client_close(client);
   esp_http_client_cleanup(client);

@@ -1101,20 +1101,11 @@ int applyOTA(const uint8_t command[], uint8_t response[]) {
     }
   }
 
-  retries = 0;
-  // TEMP: finish writing all the possible bytes with 0xFF, untile timout is reached
-  while (1) {
-    const uint8_t c = 0xFF;
-    uint8_t d = 0;
-    while (c != d && retries < 100) {
-      uart_write_bytes(UART_NUM_1, (const char*)&c, 1);
-      uart_read_bytes(UART_NUM_1, &d, 1, 10);
-      retries++;
-    }
-    if (retries >= 100) {
-      goto exit;
-    }
-  }
+  pinMode(19, OUTPUT);
+  digitalWrite(19, HIGH);
+  delay(200);
+  digitalWrite(19, LOW);
+  pinMode(19, INPUT);
 
 exit:
   fclose(updateFile);

@@ -1026,6 +1026,79 @@ int readFile(const uint8_t command[], uint8_t response[]) {
   return len + 5;
 }
 
+void provisionThread(void* p) {
+  const char* filename = "/fs/credentials.txt";
+
+start:
+  FILE* f = fopen(filename, "r");
+  if (f == NULL) {
+    // start AP mode
+    WiFi.beginAP("ArduinoProvision", 1);
+    WiFiServer server(80);
+    server.begin();
+    const char HTML[] = "<!DOCTYPE HTML>\n<html>\n<form action=\"/data\"> <label class=\"label\">Network Name</label> <input type=\"text\" name=\"ssid\"/> <label>Password</label> <input type=\"text\" name=\"pass\"/> <input type=\"submit\" value=\"Submit\"></form>\n";
+    while (1) {
+      WiFiClient client = server.available();
+      if (!client) {
+        vPortYield();
+        continue;
+      }
+      printf("client available\n");
+      bool currentLineIsBlank = false;
+      while (client.connected()) {
+        if (client.available()) {
+          char c = client.read();
+          printf("%c", c);
+          if (c == '\n' && currentLineIsBlank) {
+            client.write((const uint8_t*)HTML, sizeof(HTML));
+          }
+          if (c == '\n') {
+            // you're starting a new line
+            currentLineIsBlank = true;
+          } else if (c != '\r') {
+            // you've gotten a character on the current line
+            currentLineIsBlank = false;
+          }
+        }
+      }
+    }
+  }
+
+  char ssid[64];
+  char key[128];
+  fscanf(f, "%s\t%s", ssid, key);
+  fclose(f);
+
+  WiFi.begin(ssid, key);
+  long timeout = millis() + 5000;
+  while (WiFi.status() != WL_CONNECTED && timeout < millis()) {
+    delay(1000);
+  }
+  if (WiFi.status() != WL_CONNECTED) {
+    unlink(filename);
+    goto start;
+  }
+  return;
+}
+
+#include "http_server.h"
+#include "wifi_manager.h"
+
+static TaskHandle_t task_http_server = NULL;
+static TaskHandle_t task_wifi_manager = NULL;
+
+int beginProvision(const uint8_t command[], uint8_t response[]) {
+  //xTaskCreate(&provisionThread, "provisionThread",  2048, NULL, 10, NULL);
+
+  /* start the HTTP Server task */
+  xTaskCreate(&http_server, "http_server", 2048, NULL, 5, &task_http_server);
+
+  /* start the wifi manager task */
+  xTaskCreate(&wifi_manager, "wifi_manager", 4096, NULL, 4, &task_wifi_manager);
+
+  return 0;
+}
+
 int deleteFile(const uint8_t command[], uint8_t response[]) {
   char filename[32 + 1];
   size_t len;
@@ -1097,7 +1170,7 @@ const CommandHandlerType commandHandlers[] = {
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 
   // 0x10 -> 0x1f
-  setNet, setPassPhrase, setKey, NULL, setIPconfig, setDNSconfig, setHostname, setPowerMode, setApNet, setApPassPhrase, setDebug, getTemperature, NULL, NULL, NULL, NULL,
+  setNet, setPassPhrase, setKey, beginProvision, setIPconfig, setDNSconfig, setHostname, setPowerMode, setApNet, setApPassPhrase, setDebug, getTemperature, NULL, NULL, NULL, NULL,
 
   // 0x20 -> 0x2f
   getConnStatus, getIPaddr, getMACaddr, getCurrSSID, getCurrBSSID, getCurrRSSI, getCurrEnct, scanNetworks, startServerTcp, getStateTcp, dataSentTcp, availDataTcp, getDataTcp, startClientTcp, stopClientTcp, getClientStateTcp,

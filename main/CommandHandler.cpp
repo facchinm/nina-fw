@@ -977,6 +977,23 @@ int setAnalogWrite(const uint8_t command[], uint8_t response[])
 }
 
 
+#include "http_server.h"
+#include "wifi_manager.h"
+
+static TaskHandle_t task_http_server = NULL;
+static TaskHandle_t task_wifi_manager = NULL;
+
+int beginProvision(const uint8_t command[], uint8_t response[]) {
+  /* start the HTTP Server task */
+  xTaskCreate(&http_server, "http_server", 2048, NULL, 5, &task_http_server);
+
+  /* start the wifi manager task */
+  xTaskCreate(&wifi_manager, "wifi_manager", 4096, NULL, 4, &task_wifi_manager);
+
+  return 0;
+}
+
+
 typedef int (*CommandHandlerType)(const uint8_t command[], uint8_t response[]);
 
 const CommandHandlerType commandHandlers[] = {
@@ -984,7 +1001,7 @@ const CommandHandlerType commandHandlers[] = {
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 
   // 0x10 -> 0x1f
-  setNet, setPassPhrase, setKey, NULL, setIPconfig, setDNSconfig, setHostname, setPowerMode, setApNet, setApPassPhrase, setDebug, getTemperature, NULL, NULL, NULL, NULL,
+  setNet, setPassPhrase, setKey, beginProvision, setIPconfig, setDNSconfig, setHostname, setPowerMode, setApNet, setApPassPhrase, setDebug, getTemperature, NULL, NULL, NULL, NULL,
 
   // 0x20 -> 0x2f
   getConnStatus, getIPaddr, getMACaddr, getCurrSSID, getCurrBSSID, getCurrRSSI, getCurrEnct, scanNetworks, startServerTcp, getStateTcp, dataSentTcp, availDataTcp, getDataTcp, startClientTcp, stopClientTcp, getClientStateTcp,

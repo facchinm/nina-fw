@@ -156,6 +156,8 @@ static void telnetTask(void *data) {
 }
 #endif
 
+#include "wifi_manager.h"
+
 void setupWiFi() {
   esp_bt_controller_mem_release(ESP_BT_MODE_BTDM);
   SPIS.begin();

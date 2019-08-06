@@ -51,7 +51,7 @@ WiFiClass::WiFiClass() :
 
 uint8_t WiFiClass::status()
 {
-  if (!_initialized) {
+  if (!_initialized && !_provisioning) {
     _initialized = true;
     init();
   }
@@ -589,6 +589,12 @@ err_t WiFiClass::handleApNetifInput(struct pbuf* p, struct netif* inp)
   }
 
   return result;
+}
+
+void WiFiClass::reinit()
+{
+  esp_event_loop_init(WiFiClass::systemEventHandler, this);
+  _status = WL_IDLE_STATUS;
 }
 
 void WiFiClass::init()

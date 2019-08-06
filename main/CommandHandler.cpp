@@ -1096,6 +1096,7 @@ int applyOTA(const uint8_t command[], uint8_t response[]) {
 
   int retries = 0;
 
+  size_t remaining =  st.st_size % 1024;
   for (int i=0; i<st.st_size; i++) {
     uint8_t c;
     uint8_t d;
@@ -1111,6 +1112,20 @@ int applyOTA(const uint8_t command[], uint8_t response[]) {
       goto exit;
     }
   }
+  // send remaining bytes (to reach page size) as 0xFF
+  for (int i=0; i<remaining + 10; i++) {
+    uint8_t c = 0xFF;
+    uint8_t d;
+    retries = 0;
+    while (retries == 0 || (c != d && retries < 100)) {
+      uart_write_bytes(UART_NUM_1, (const char*)&c, 1);
+      uart_read_bytes(UART_NUM_1, &d, 1, 10);
+      retries++;
+    }
+  }
+
+  // delay a bit before restarting, in case the flashing isn't yet over
+  delay(200);
 
   pinMode(19, OUTPUT);
   digitalWrite(19, HIGH);

@@ -9,7 +9,7 @@ certsData = open("data/roots.pem", "rb").read()
 appData = open("build/nina-fw.bin", "rb").read()
 
 # calculate the output binary size, app offset 
-outputSize = 0x1B0000 + len(storageData)
+outputSize = 0x30000 + len(appData)
 if (outputSize % 1024):
 	outputSize += 1024 - (outputSize % 1024)
 

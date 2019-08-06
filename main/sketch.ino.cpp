@@ -21,8 +21,16 @@
 
 extern "C" {
   #include <driver/periph_ctrl.h>
+
   #include <driver/uart.h>
   #include <esp_bt.h>
+
+  #include "esp_spiffs.h"
+  #include "esp_log.h"
+  #include <stdio.h>
+  #include <sys/types.h>
+  #include <dirent.h>
+  #include "esp_partition.h"
 }
 
 #include <Arduino.h>
@@ -131,14 +139,44 @@ void setupBluetooth() {
   }
 }
 
+#ifdef TELNET_DEBUG
+extern "C" {
+  #include "telnet.h"
+}
+
+static void recvData(uint8_t *buffer, size_t size) {
+  char responseMessage[100];
+  sprintf(responseMessage, "Telnet connected\n");
+  telnet_esp32_sendData((uint8_t *)responseMessage, strlen(responseMessage));
+}
+
+static void telnetTask(void *data) {
+  telnet_esp32_listenForClients(recvData);
+  vTaskDelete(NULL);
+}
+#endif
+
 void setupWiFi() {
   esp_bt_controller_mem_release(ESP_BT_MODE_BTDM);
   SPIS.begin();
 
+  esp_vfs_spiffs_conf_t conf = {
+    .base_path = "/fs",
+    .partition_label = "storage",
+    .max_files = 20,
+    .format_if_mount_failed = true
+  };
+
+  esp_err_t ret = esp_vfs_spiffs_register(&conf);
+
   if (WiFi.status() == WL_NO_SHIELD) {
     while (1); // no shield
   }
-  
+
+#ifdef TELNET_DEBUG
+  xTaskCreatePinnedToCore(&telnetTask, "telnetTask", 8048, NULL, 5, NULL, 0);
+#endif
+
   commandBuffer = (uint8_t*)heap_caps_malloc(SPI_BUFFER_LEN, MALLOC_CAP_DMA);
   responseBuffer = (uint8_t*)heap_caps_malloc(SPI_BUFFER_LEN, MALLOC_CAP_DMA);
 

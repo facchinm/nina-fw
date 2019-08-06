@@ -1123,6 +1123,8 @@ exit:
   unlink(filename);
 
   return 0;
+#else
+  return 0;
 #endif
 }
 

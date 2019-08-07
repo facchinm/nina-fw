@@ -89,13 +89,11 @@ int WiFiClass::hostByName(const char* hostname, /*IPAddress*/uint32_t& result)
 
 int WiFiClass::ping(/*IPAddress*/uint32_t host, uint8_t ttl)
 {
-  uint32_t timeout = 5000;
-
   int s = socket(AF_INET, SOCK_RAW, IP_PROTO_ICMP);
 
   struct timeval timeoutVal;
-  timeoutVal.tv_sec = (timeout / 1000);
-  timeoutVal.tv_usec = (timeout % 1000) * 1000;
+  timeoutVal.tv_sec = (_timeout / 1000);
+  timeoutVal.tv_usec = (_timeout % 1000) * 1000;
 
   setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &timeoutVal, sizeof(timeoutVal));
   setsockopt(s, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));

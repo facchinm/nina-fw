@@ -97,6 +97,10 @@ public:
   void lowPowerMode();
   void noLowPowerMode();
 
+  void setTimeout(unsigned long timeout) {
+    _timeout = timeout;
+  }
+
   void onReceive(void(*)(void));
   void onDisconnect(void(*)(void));
 
@@ -113,6 +117,7 @@ private:
 
 private:
   bool _initialized;
+  unsigned long _timeout = 5000;
   volatile uint8_t _status;
   volatile uint8_t _reasonCode;
   EventGroupHandle_t _eventGroup;

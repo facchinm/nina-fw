@@ -100,9 +100,6 @@ public:
   void onReceive(void(*)(void));
   void onDisconnect(void(*)(void));
 
-  void reinit();
-  bool _provisioning = false;
-
 private:
   void init();
 

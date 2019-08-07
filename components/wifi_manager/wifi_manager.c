@@ -95,34 +95,6 @@ const char wifi_manager_nvs_namespace[] = "espwifimgr";
 
 EventGroupHandle_t wifi_manager_event_group;
 
-/* @brief indicate that the ESP32 is currently connected. */
-const int WIFI_MANAGER_WIFI_CONNECTED_BIT = BIT0;
-
-const int WIFI_MANAGER_AP_STA_CONNECTED_BIT = BIT1;
-
-/* @brief Set automatically once the SoftAP is started */
-const int WIFI_MANAGER_AP_STARTED_BIT = BIT2;
-
-/* @brief When set, means a client requested to connect to an access point.*/
-const int WIFI_MANAGER_REQUEST_STA_CONNECT_BIT = BIT3;
-
-/* @brief This bit is set automatically as soon as a connection was lost */
-const int WIFI_MANAGER_STA_DISCONNECT_BIT = BIT4;
-
-/* @brief When set, means the wifi manager attempts to restore a previously saved connection at startup. */
-const int WIFI_MANAGER_REQUEST_RESTORE_STA_BIT = BIT5;
-
-/* @brief When set, means a client requested to disconnect from currently connected AP. */
-const int WIFI_MANAGER_REQUEST_WIFI_DISCONNECT_BIT = BIT6;
-
-/* @brief When set, means a scan is in progress */
-const int WIFI_MANAGER_SCAN_BIT = BIT7;
-
-/* @brief When set, means user requested for a disconnect */
-const int WIFI_MANAGER_REQUEST_DISCONNECT_BIT = BIT8;
-
-
-
 
 void wifi_manager_scan_async(){
 	wifi_manager_send_message(ORDER_START_WIFI_SCAN, NULL);
@@ -432,86 +404,6 @@ char* wifi_manager_get_ap_list_json(){
 	return accessp_json;
 }
 
-
-esp_err_t wifi_manager_event_handler(void *ctx, system_event_t *event)
-{
-
-
-
-    switch(event->event_id) {
-
-    case SYSTEM_EVENT_WIFI_READY:
-    	ESP_LOGI(TAG, "SYSTEM_EVENT_WIFI_READY");
-    	break;
-
-    case SYSTEM_EVENT_SCAN_DONE:
-    	ESP_LOGD(TAG, "SYSTEM_EVENT_SCAN_DONE");
-    	xEventGroupClearBits(wifi_manager_event_group, WIFI_MANAGER_SCAN_BIT);
-    	wifi_manager_send_message(EVENT_SCAN_DONE, NULL);
-    	break;
-
-    case SYSTEM_EVENT_STA_AUTHMODE_CHANGE:
-    	ESP_LOGI(TAG, "SYSTEM_EVENT_STA_AUTHMODE_CHANGE");
-    	break;
-
-
-    case SYSTEM_EVENT_AP_START:
-    	ESP_LOGI(TAG, "SYSTEM_EVENT_AP_START");
-    	xEventGroupSetBits(wifi_manager_event_group, WIFI_MANAGER_AP_STARTED_BIT);
-		break;
-
-    case SYSTEM_EVENT_AP_STOP:
-    	break;
-
-    case SYSTEM_EVENT_AP_PROBEREQRECVED:
-    	break;
-
-    case SYSTEM_EVENT_AP_STACONNECTED: /* a user disconnected from the SoftAP */
-    	ESP_LOGI(TAG, "SYSTEM_EVENT_AP_STACONNECTED");
-		xEventGroupSetBits(wifi_manager_event_group, WIFI_MANAGER_AP_STA_CONNECTED_BIT);
-		break;
-
-    case SYSTEM_EVENT_AP_STADISCONNECTED:
-    	ESP_LOGI(TAG, "SYSTEM_EVENT_AP_STADISCONNECTED");
-    	xEventGroupClearBits(wifi_manager_event_group, WIFI_MANAGER_AP_STA_CONNECTED_BIT);
-		break;
-
-    case SYSTEM_EVENT_STA_START:
-    	ESP_LOGI(TAG, "SYSTEM_EVENT_STA_START");
-        break;
-
-    case SYSTEM_EVENT_STA_STOP:
-    	ESP_LOGI(TAG, "SYSTEM_EVENT_STA_STOP");
-    	break;
-
-	case SYSTEM_EVENT_STA_GOT_IP:
-		ESP_LOGI(TAG, "SYSTEM_EVENT_STA_GOT_IP");
-        xEventGroupSetBits(wifi_manager_event_group, WIFI_MANAGER_WIFI_CONNECTED_BIT);
-        wifi_manager_send_message(EVENT_STA_GOT_IP, (void*)event->event_info.got_ip.ip_info.ip.addr );
-        break;
-
-	case SYSTEM_EVENT_STA_CONNECTED:
-		ESP_LOGI(TAG, "SYSTEM_EVENT_STA_CONNECTED");
-		break;
-
-	case SYSTEM_EVENT_STA_DISCONNECTED:
-		ESP_LOGI(TAG, "SYSTEM_EVENT_STA_DISCONNECTED");
-
-		/* if a DISCONNECT message is posted while a scan is in progress this scan will NEVER end, causing scan to never work again. For this reason SCAN_BIT is cleared too */
-		xEventGroupClearBits(wifi_manager_event_group, WIFI_MANAGER_WIFI_CONNECTED_BIT | WIFI_MANAGER_SCAN_BIT);
-
-		/* post disconnect event with reason code */
-		wifi_manager_send_message(EVENT_STA_DISCONNECTED, (void*)( (uint32_t)event->event_info.disconnected.reason) );
-        break;
-
-	default:
-        break;
-    }
-	return ESP_OK;
-}
-
-
-
 wifi_config_t* wifi_manager_get_wifi_sta_config(){
 	return wifi_manager_config_sta;
 }
@@ -659,7 +551,6 @@ void wifi_manager( void * pvParameters ){
 
 	/* event handler and event group for the wifi driver */
 	wifi_manager_event_group = xEventGroupCreate();
-	ESP_ERROR_CHECK(esp_event_loop_init(wifi_manager_event_handler, NULL));
 
 	/* wifi scanner config */
 	wifi_scan_config_t scan_config = {
@@ -732,7 +623,6 @@ void wifi_manager( void * pvParameters ){
 
 
 	/* start http server */
-	http_server_start();
 
 	/* enqueue first event: load previous config */
 	wifi_manager_send_message(ORDER_LOAD_AND_RESTORE_STA, NULL);
@@ -958,7 +848,7 @@ void wifi_manager( void * pvParameters ){
 				ESP_LOGI(TAG, "MESSAGE: ORDER_START_AP");
 				esp_wifi_set_mode(WIFI_MODE_APSTA);
 
-				//http_server_start();
+				http_server_start();
 				dns_server_start();
 
 				/* callback */

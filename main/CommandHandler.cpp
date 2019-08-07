@@ -1301,19 +1301,10 @@ int wpa2EntEnable(const uint8_t command[], uint8_t response[]) {
 
 
 #include "wifi_manager.h"
-#include "esp_wifi.h"
-
-static void cb_connection_ok(void *pvParameter) {
-  WiFi.reinit();
-}
 
 int beginProvision(const uint8_t command[], uint8_t response[]) {
   /* start the wifi manager task */
-  WiFi.end();
-  esp_wifi_deinit();
-  WiFi._provisioning = true;
   wifi_manager_start();
-  wifi_manager_set_callback(EVENT_STA_GOT_IP, &cb_connection_ok);
 
   response[2] = 1; // number of parameters
   response[3] = 1; // parameter 1 length

@@ -215,6 +215,34 @@ typedef enum connection_request_made_by_code_t{
 	CONNECTION_REQUEST_MAX = 0x7fffffff /*force the creation of this enum as a 32 bit int */
 }connection_request_made_by_code_t;
 
+/* @brief indicate that the ESP32 is currently connected. */
+static const int WIFI_MANAGER_WIFI_CONNECTED_BIT = BIT0;
+
+static const int WIFI_MANAGER_AP_STA_CONNECTED_BIT = BIT1;
+
+/* @brief Set automatically once the SoftAP is started */
+static const int WIFI_MANAGER_AP_STARTED_BIT = BIT2;
+
+/* @brief When set, means a client requested to connect to an access point.*/
+static const int WIFI_MANAGER_REQUEST_STA_CONNECT_BIT = BIT3;
+
+/* @brief This bit is set automatically as soon as a connection was lost */
+static const int WIFI_MANAGER_STA_DISCONNECT_BIT = BIT4;
+
+/* @brief When set, means the wifi manager attempts to restore a previously saved connection at startup. */
+static const int WIFI_MANAGER_REQUEST_RESTORE_STA_BIT = BIT5;
+
+/* @brief When set, means a client requested to disconnect from currently connected AP. */
+static const int WIFI_MANAGER_REQUEST_WIFI_DISCONNECT_BIT = BIT6;
+
+/* @brief When set, means a scan is in progress */
+static const int WIFI_MANAGER_SCAN_BIT = BIT7;
+
+/* @brief When set, means user requested for a disconnect */
+static const int WIFI_MANAGER_REQUEST_DISCONNECT_BIT = BIT8;
+
+extern EventGroupHandle_t wifi_manager_event_group;
+
 /**
  * The actual WiFi settings in use
  */

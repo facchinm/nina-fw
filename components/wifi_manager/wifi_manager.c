@@ -581,7 +581,11 @@ void wifi_manager( void * pvParameters ){
 			.beacon_interval = DEFAULT_AP_BEACON_INTERVAL,
 		},
 	};
-	memcpy(ap_config.ap.ssid, wifi_settings.ap_ssid , sizeof(wifi_settings.ap_ssid));
+	// Add three mac address bytes to distinguish the boards in a workshop-like event
+	uint8_t mac[6] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	esp_wifi_get_mac(ESP_IF_WIFI_AP, mac);
+	sprintf((char *)ap_config.ap.ssid,"%s-%02X%02X%02X", wifi_settings.ap_ssid, mac[5], mac[4], mac[3]);
+
 	memcpy(ap_config.ap.password, wifi_settings.ap_pwd, sizeof(wifi_settings.ap_pwd));
 
 	ESP_ERROR_CHECK(tcpip_adapter_dhcps_stop(TCPIP_ADAPTER_IF_AP)); 	/* stop AP DHCP server */

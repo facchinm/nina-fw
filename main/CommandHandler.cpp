@@ -1293,7 +1293,7 @@ int beginProvision(const uint8_t command[], uint8_t response[]) {
 
   response[2] = 1; // number of parameters
   response[3] = 1; // parameter 1 length
-  response[4] = 1;
+  response[4] = wifi_manager_fetch_wifi_sta_config() ? 1 : 0;
 
   return 6;
 }

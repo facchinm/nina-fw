@@ -211,10 +211,25 @@ int setApPassPhrase(const uint8_t command[], uint8_t response[])
 }
 
 extern void setDebug(int debug);
+extern void setupBluetoothCoexistence(void*);
 
 int setDebug(const uint8_t command[], uint8_t response[])
 {
   setDebug(command[4]);
+
+  response[2] = 1; // number of parameters
+  response[3] = 1; // parameter 1 length
+  response[4] = 1;
+
+  return 6;
+}
+
+#include "esp_bt.h"
+
+int setBLECoexistence(const uint8_t command[], uint8_t response[])
+{
+  uint8_t initial = false;
+  setupBluetoothCoexistence(&initial);
 
   response[2] = 1; // number of parameters
   response[3] = 1; // parameter 1 length
@@ -1129,7 +1144,7 @@ const CommandHandlerType commandHandlers[] = {
   setEnt, NULL, NULL, NULL, sendDataTcp, getDataBufTcp, insertDataBuf, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 
   // 0x50 -> 0x5f
-  setPinMode, setDigitalWrite, setAnalogWrite,
+  setPinMode, setDigitalWrite, setAnalogWrite, setBLECoexistence,
 };
 
 #define NUM_COMMAND_HANDLERS (sizeof(commandHandlers) / sizeof(commandHandlers[0]))

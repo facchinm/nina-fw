@@ -81,6 +81,7 @@ void setDebug(int d) {
 
 void setupWiFi();
 void setupBluetooth();
+void setupBluetoothCoexistence(void*);
 
 void setup() {
   setDebug(debug);
@@ -93,6 +94,8 @@ void setup() {
   if (digitalRead(5) == LOW) {
     setupBluetooth();
   } else {
+    uint8_t initial = true;
+    setupBluetoothCoexistence(&initial);
     setupWiFi();
   }
 }
@@ -131,8 +134,28 @@ void setupBluetooth() {
   }
 }
 
+void setupBluetoothCoexistence(void* arg) {
+  uint8_t initial = *(uint8_t*)arg;
+
+  if (initial) {
+    periph_module_enable(PERIPH_UART1_MODULE);
+    periph_module_enable(PERIPH_UHCI0_MODULE);
+
+    uart_set_pin(UART_NUM_1, 1, 3, 33, 0); // TX, RX, RTS, CTS
+    uart_set_hw_flow_ctrl(UART_NUM_1, UART_HW_FLOWCTRL_CTS_RTS, 5);
+  } else {
+    esp_bt_controller_config_t btControllerConfig = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+
+    btControllerConfig.hci_uart_no = UART_NUM_1;
+    btControllerConfig.hci_uart_baudrate = 115200;
+
+    esp_bt_controller_init(&btControllerConfig);
+    esp_bt_controller_enable(ESP_BT_MODE_BLE);
+  }
+}
+
 void setupWiFi() {
-  esp_bt_controller_mem_release(ESP_BT_MODE_BTDM);
+  esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
   SPIS.begin();
 
   if (WiFi.status() == WL_NO_SHIELD) {
